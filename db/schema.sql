@@ -6,23 +6,20 @@ USE management_db;
 
 CREATE TABLE employees (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    employee_name VARCHAR(100) NOT NULL
+    first_name VARCHAR(30) NOT NULL,
+    last_name VARCHAR(30) NOT NULL,
+    role_id INT,
+    manager_id INT
 );
 
 CREATE TABLE roles (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    employee_id INT,
-    role_name TEXT NOT NULL,
-    FOREIGN KEY (employee_id)
-    REFERENCES (employee_id)
-    ON DELETE SET NULL
+    title VARCHAR(30) NOT NULL
+    salary DECIMAL,
+    department_id INT
 );
 
 CREATE TABLE departments (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    employee_id INT,
-    department_name TEXT NOT NULL,
-    FOREIGN KEY (employee_id)
-    REFERENCES employees(id)
-    ON DELETE SET NULL
+    name VARCHAR(30)
 );
