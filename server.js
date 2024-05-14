@@ -161,56 +161,78 @@ function addRole() {
 
 function addEmployee() {
     db.query('SELECT * FROM roles', (err, results) => {
-        if (err) throw err;
+        if (err)
+            throw err;
         // console.table(results)
 
         const currentRoles = results.map(row => ({ name: row.title, value: row.id }))
 
-        const currentEmployees = findEmployees();
+        findEmployees().then(currentEmployees => {
 
-        inquirer.prompt([
-            {
-                type: 'input',
-                name: 'firstName',
-                message: 'Enter the new Employees first name:',
-            },
-            {
-                type: 'input',
-                name: 'lastName',
-                message: 'Enter the new Employees last name:',
-            },
-            {
-                type: 'list',
-                name: 'employeeRole',
-                message: 'Enter the new Employees role:',
-                choices: currentRoles
-            },
-            // {
-            //     type: 'list',
-            //     name: 'newManager',
-            //     message: 'Enter the manager for this employee:',
-            //     choices: currentEmployees
-            //     // have to find a way to put a none so that they can become managers
-            // }
-        ]).then(response => {
-            const query = 'INSERT INTO employees (first_name, last_name, role_id) VALUES (?, ?, ?, ?)';
-            db.query(query, [response.firstName, response.lastName, response.employeeRole], (err, results) => {
-                if (err) throw err;
-                console.log('Entry created:', results.insertId);
-            })
-            startProgram();
+
+            inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'firstName',
+                    message: 'Enter the new Employees first name:',
+                },
+                {
+                    type: 'input',
+                    name: 'lastName',
+                    message: 'Enter the new Employees last name:',
+                },
+                {
+                    type: 'list',
+                    name: 'employeeRole',
+                    message: 'Enter the new Employees role:',
+                    choices: currentRoles
+                },
+                {
+                    type: 'list',
+                    name: 'newManager',
+                    message: 'Enter the manager for this employee:',
+                    choices: [{ name: 'None', value: null }, ...currentEmployees]
+                    // have to find a way to put a none so that they can become managers
+                }
+            ]).then(response => {
+                const query = 'INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)';
+                db.query(query, [response.firstName, response.lastName, response.employeeRole, response.newManager], (err, results) => {
+                    if (err) throw err;
+                    console.log('Entry created:', results.insertId);
+                })
+                startProgram();
+            }).catch(error => {
+                console.error('Error', error);
+            });
         }).catch(error => {
             console.error('Error', error);
         });
     })
 }
 
+function findEmployees() {
+    return new Promise((resolve, reject) => {
+
+        const query = 'SELECT * FROM employees';
+        db.query(query, (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                const currentEmployees = results.map(row => ({ name: `${row.first_name} ${row.last_name}`, value: row.id }))
+                resolve(currentEmployees)
+            }
+        });
+    });
+
+}
 function updateEmployee() {
     db.query('SELECT * FROM employees', (err, results) => {
         if (err) throw err;
         // console.table(results)
-
-        const currentEmployees = results.map(row => ({ name: row.title, value: row.id }))
+        
+        const currentEmployees = results.map(row => ({ name: `${row.first_name} ${row.last_name}`, value: row.employee_id }))
+        console.log(results);
+        
         inquirer.prompt([
             {
                 type: 'list',
@@ -222,27 +244,37 @@ function updateEmployee() {
                 type: 'list',
                 name: 'newUpdate',
                 message: 'What do you want updated for this employee:',
-                choices: ['Remove Employee', 'Change Role']
+                choices: ['Remove Employee']
             }
         ]).then(choice => {
+
+            console.table(choice);
 
 
 
             switch (choice.newUpdate) {
                 case 'Remove Employee':
-                    removeEmployee();
+                    removeEmployee(choice.updatedEmployee);
                     break;
-                case 'Change Role':
-                    changeRole();
-                    break;
+                // case 'Change Role':
+                //     changeRole();
+                //     break;
             }
         }
         )
     })
 }
 
-
-
+function removeEmployee(employeeId) {
+    db.query('DELETE FROM employees WHERE employee_id = ?', [employeeId], (err, results) => {
+        if (err) {
+            console.error('Error deleting employee:', err);
+            return;
+        }
+        console.log('Employee removed successfully');
+        startProgram();
+    });
+}
 
 
 
