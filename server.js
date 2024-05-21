@@ -231,7 +231,7 @@ function updateEmployee() {
         // console.table(results)
         
         const currentEmployees = results.map(row => ({ name: `${row.first_name} ${row.last_name}`, value: row.employee_id }))
-        console.log(results);
+        // console.log(results);
         
         inquirer.prompt([
             {
@@ -248,7 +248,7 @@ function updateEmployee() {
             }
         ]).then(choice => {
 
-            console.table(choice);
+            // console.table(choice);
 
 
 
